@@ -142,32 +142,35 @@ go
 exec spListarAlumno
 go
 ------------------------
--------Agregar Alumno(x)
+-------Agregar Alumno
 ------------------------
 if OBJECT_ID('spAgregarAlumno') is not null
 	drop proc spAgregarAlumno
 go
 --
 create proc spAgregarAlumno
-@CodAlumno char(5),@Apellidos varchar(50),@Nombres varchar(50),@LugarNac varchar(50),@FechaNac datetime,@CodEscuela char(3)
+@CodAlumno char(5),@Apellidos varchar(50),@Nombres varchar(50),@LugarNac varchar(50),@FechaNac datetime,@CodEscuela char(3) 
 as
 begin
-	--CodAlumno no puede ser duplicado
+	--Cod Alumno no puede ser duplicado
 	if not exists (select CodAlumno from TAlumno where CodAlumno=@CodAlumno)
-	--Escuela no puede ser duplicado
-		if not exists (select CodEscuela from TAlumno where CodEscuela=@CodEscuela)
-			begin
-				insert into TEscuela values (@CodEscuela, @Escuela, @Facultad)
-				select CodError = 0, Mensaje = 'Se inserto correctamente Escuela'
-			end
-		else select CodError = 1, Mensaje = 'Error: Escuela duplicada'
-	else select CodError = 1, Mensaje = 'Error: CodAlumno duplicado'
-
-end
+		--Alumno no puede estar en bvvarias escuelas
+		if not exists (select CodEscuela from TAlumno where Apellidos=@Apellidos)
+			if not exists (select CodEscuela from TAlumno where Nombres=@Nombres)
+				begin
+					insert into TAlumno values(@CodAlumno,@Apellidos,@Nombres,@LugarNac,@FechaNac,@CodEscuela)
+					select CodError=0,Mensaje='Se inserto correctamente alumno'
+				end
+			else select CodError=1,Mensaje='Error:Alumno ya existe en la escuela2'
+		else select CodError=1,Mensaje='Error:Alumno ya existe en la escuela'
+	else select CodError=1,Mensaje='Error:CodAlumno duplicado'
+end 
 go
 --
-exec spAgregarEscuela'E05','Electrica','Ingenieria'
+exec spAgregarAlumno'A0002','Cruz Seminario','Paula','Cusco','2021-01-05 00:00:00','E01'
+exec spAgregarAlumno'A0003','Guevara Martinez','Benjamin','Cusco','2021-01-05 00:00:00','E01'
 go
+DROP PROCEDURE spAgregarAlumno
 ------------------------
 -------Eliminar Alumno
 ------------------------
